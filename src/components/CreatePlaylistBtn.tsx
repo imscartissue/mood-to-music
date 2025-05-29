@@ -33,7 +33,7 @@ const CreatePlaylistBtn = () => {
             songs: checkedSongList.map((s) => spotifyUrlToUri(s.link)),
         }));
 
-        const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES.join(" "))}&state=${state}`;
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES.join(" "))}&state=${state}`;
 
         window.location.href = authUrl;
     }
