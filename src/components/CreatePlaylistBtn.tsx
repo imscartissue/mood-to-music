@@ -30,7 +30,7 @@ const CreatePlaylistBtn = () => {
 
     const createPlaylist = () => {
         const state = encodeURIComponent(JSON.stringify({
-            songs: [checkedSongList.map((s) => spotifyUrlToUri(s.link))],
+            songs: checkedSongList.map((s) => spotifyUrlToUri(s.link)),
         }));
 
         const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES.join(" "))}&state=${state}`;
