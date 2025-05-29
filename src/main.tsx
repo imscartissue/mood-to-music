@@ -17,7 +17,6 @@ const router = createBrowserRouter([
     </div>
   },
   { path: "/mood/:moodName", element: <MoodPage /> },
-  { path: "/callback", element: <Callback /> },
 ]);
 
 createRoot(document.getElementById('root')!).render(
