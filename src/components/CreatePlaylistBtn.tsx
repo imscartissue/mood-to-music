@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useCheckedSongList } from "./store";
 
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const REDIRECT_URI = "https://mood-to-music.vercel.com/callback";
+const REDIRECT_URI = "https://mood-to-music.vercel.app/callback";
 const SCOPES = ["playlist-modify-public", "playlist-modify-private"];
 
 const CreatePlaylistBtn = () => {
