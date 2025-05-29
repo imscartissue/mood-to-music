@@ -1,10 +1,9 @@
 // Callback.tsx
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
 
 const Callback = () => {
 	const { hash } = useLocation();
-	const navigate = useNavigate();
 
 	useEffect(() => {
 		const params = new URLSearchParams(hash.substring(1));
