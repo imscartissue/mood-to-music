@@ -10,46 +10,65 @@ const Callback = () => {
 		const token = params.get("access_token");
 		const rawState = params.get("state");
 
-		if (!token || !rawState) return;
+		if (!token || !rawState) {
+			console.error("Missing token or state");
+			return;
+		}
 
 		const { songs } = JSON.parse(decodeURIComponent(rawState));
+		console.log("Decoded songs:", songs);
 
 		const createPlaylist = async () => {
-			// 1. Get user ID
-			const userRes = await fetch("https://api.spotify.com/v1/me", {
-				headers: { Authorization: `Bearer ${token}` },
-			});
-			const userData = await userRes.json();
+			try {
+				// 1. Get user ID
+				const userRes = await fetch("https://api.spotify.com/v1/me", {
+					headers: { Authorization: `Bearer ${token}` },
+				});
+				const userData = await userRes.json();
+				console.log("User data:", userData);
 
-			// 2. Create playlist
-			const playlistRes = await fetch(`https://api.spotify.com/v1/users/${userData.id}/playlists`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					name: "My Mood Playlist",
-					description: "Created with Mood2Music 🎵",
-					public: true,
-				}),
-			});
-			const playlistData = await playlistRes.json();
+				if (!userData.id) throw new Error("Failed to get user ID");
 
-			// 3. Add songs
-			await fetch(`https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					uris: songs,
-				}),
-			});
+				// 2. Create playlist
+				const playlistRes = await fetch(`https://api.spotify.com/v1/users/${userData.id}/playlists`, {
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						name: "My Mood Playlist",
+						description: "Created with Mood2Music 🎵",
+						public: true,
+					}),
+				});
+				const playlistData = await playlistRes.json();
+				console.log("Playlist created:", playlistData);
 
-			// 4. Redirect to playlist
-			window.location.href = playlistData.external_urls.spotify;
+				if (!playlistData.id) throw new Error("Failed to create playlist");
+
+				// 3. Add songs
+				const addTracksRes = await fetch(
+					`https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`,
+					{
+						method: "POST",
+						headers: {
+							Authorization: `Bearer ${token}`,
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							uris: songs,
+						}),
+					}
+				);
+				const addTracksData = await addTracksRes.json();
+				console.log("Tracks added:", addTracksData);
+
+				// 4. Redirect to playlist
+				window.location.href = playlistData.external_urls.spotify;
+			} catch (err) {
+				console.error("Error creating playlist:", err);
+			}
 		};
 
 		createPlaylist();
