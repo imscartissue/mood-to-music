@@ -5,7 +5,6 @@ import { createBrowserRouter, Link, RouterProvider } from 'react-router'
 
 import HomePage from './elements/HomePage';
 import MoodPage from './elements/MoodPage';
-import Callback from './backend/Callback';
 
 const router = createBrowserRouter([
   {
