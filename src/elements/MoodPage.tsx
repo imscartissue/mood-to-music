@@ -61,7 +61,7 @@ const MoodPage = (): React.ReactNode => {
 
                             return {
                                 name: data.name,
-                                artist: data.artists.map((a: any) => a.name).join(", "),
+                                artist: data.artists?.map((a: any) => a.name).join(", ") || "",
                                 duration: `${durationMin}:${durationSec}`,
                                 link: link,
                                 isExplicit: data.explicit,
