@@ -38,58 +38,54 @@ const MoodPage = (): React.ReactNode => {
         const docRef = ref(db, String(moodName));
 
         const fetchData = async () => {
-            const fetchData = async () => {
-	try {
-		const docSnap = await get(docRef);
+            try {
+                const docSnap = await get(docRef);
 
-		if (docSnap.exists()) {
-			const links = Object.values(docSnap.val()) as string[];
+                if (docSnap.exists()) {
+                    const links = Object.values(docSnap.val()) as string[];
 
-			const songsData: (Song | null)[] = await Promise.all(
-				links.map(async (link: string) => {
-					const trackId = extractTrackId(link);
+                    const songsData: (Song | null)[] = await Promise.all(
+                        links.map(async (link: string) => {
 
-					// Skip if trackId is missing or malformed (should be 22 chars alphanumeric)
-					if (!trackId || !/^[a-zA-Z0-9]{22}$/.test(trackId)) {
-						console.warn("Invalid or missing track ID:", link);
-						return null;
-					}
+                            const trackId = extractTrackId(link);
 
-					try {
-						const data = await getTrackInfo(trackId);
+                            if (!trackId) {
+                                console.error("Invalid Spotify URL:", link);
+                                return null;
+                            }
 
-						const durationMin = Math.floor(data.duration_ms / 60000);
-						const durationSec = Math.floor((data.duration_ms % 60000) / 1000)
-							.toString()
-							.padStart(2, "0");
+                            const data = await getTrackInfo(trackId);
 
-						return {
-							name: data.name,
-							artist: Array.isArray(data.artists)
-								? data.artists.map((a: any) => a.name).join(", ")
-								: "",
-							duration: `${durationMin}:${durationSec}`,
-							link: link,
-							isExplicit: data.explicit,
-							isChecked: false
-						} as Song;
+                            const durationMin = Math.floor(data.duration_ms / 60000);
+                            const durationSec = Math.floor((data.duration_ms % 60000) / 1000).toString().padStart(2, "0");
 
-					} catch (err) {
-						console.warn("Failed to fetch Spotify data for:", trackId);
-						return null;
-					}
-				})
-			);
+                            const artist = Array.isArray(data.artists)
+                                ? data.artists.map((a: any) => a.name).join(", ")
+                                : "";
 
-			setSongs(songsData.filter((song) => song !== null) as Song[]);
-		}
-	} catch (error) {
-		console.error("Error fetching mood data:", error);
-	} finally {
-		setLoading(false);
-	}
-};
+                            if (!artist || artist.trim() === "") {
+                                return null;
+                            }
 
+                            return {
+                                name: data.name,
+                                artist,
+                                duration: `${durationMin}:${durationSec}`,
+                                link: link,
+                                isExplicit: data.explicit,
+                                isChecked: false
+                            } as Song;
+                        })
+                    );
+
+                    // Filter out any null results
+                    setSongs(songsData.filter((song) => song !== null) as Song[]);
+                }
+            } catch (error) {
+                console.log("Error fetching data:", error);
+            } finally {
+                setLoading(false);
+            }
         };
 
 
@@ -99,28 +95,28 @@ const MoodPage = (): React.ReactNode => {
 
     return (
         <div className="min-h-screen flex flex-col">
-	<Navbar />
+            <Navbar />
 
-	{/* Flex container for content */}
-	<div className="flex-1 m-5 w-3/4 md:w-2/3 mx-auto flex flex-col md:flex-row gap-y-5 gap-x-4">
+            {/* Flex container for content */}
+            <div className="flex-1 m-5 w-3/4 md:w-2/3 mx-auto flex flex-col md:flex-row gap-y-5 gap-x-4">
 
-		{/* Make THIS scrollable */}
-		<div className="flex-1 overflow-hidden max-h-[70vh] pr-2">
-			<SongList
-				moodName={moodName}
-				songs={songs}
-				loading={loading}
-				loadingText={loadingText}
-			/>
-		</div>
+                {/* Make THIS scrollable */}
+                <div className="flex-1 overflow-hidden max-h-[70vh] pr-2">
+                    <SongList
+                        moodName={moodName}
+                        songs={songs}
+                        loading={loading}
+                        loadingText={loadingText}
+                    />
+                </div>
 
-		{/* Optional: Keep Options non-scrollable */}
-		<div className="w-full md:w-72">
-			<Options />
-		</div>
+                {/* Optional: Keep Options non-scrollable */}
+                <div className="w-full md:w-72">
+                    <Options />
+                </div>
 
-	</div>
-</div>
+            </div>
+        </div>
 
 
     );
