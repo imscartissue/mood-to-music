@@ -38,46 +38,58 @@ const MoodPage = (): React.ReactNode => {
         const docRef = ref(db, String(moodName));
 
         const fetchData = async () => {
-            try {
-                const docSnap = await get(docRef);
+            const fetchData = async () => {
+	try {
+		const docSnap = await get(docRef);
 
-                if (docSnap.exists()) {
-                    const links = Object.values(docSnap.val()) as string[];
+		if (docSnap.exists()) {
+			const links = Object.values(docSnap.val()) as string[];
 
-                    const songsData: (Song | null)[] = await Promise.all(
-                        links.map(async (link: string) => {
+			const songsData: (Song | null)[] = await Promise.all(
+				links.map(async (link: string) => {
+					const trackId = extractTrackId(link);
 
-                            const trackId = extractTrackId(link);
+					// Skip if trackId is missing or malformed (should be 22 chars alphanumeric)
+					if (!trackId || !/^[a-zA-Z0-9]{22}$/.test(trackId)) {
+						console.warn("Invalid or missing track ID:", link);
+						return null;
+					}
 
-                            if (!trackId) {
-                                console.error("Invalid Spotify URL:", link);
-                                return null;
-                            }
+					try {
+						const data = await getTrackInfo(trackId);
 
-                            const data = await getTrackInfo(trackId);
+						const durationMin = Math.floor(data.duration_ms / 60000);
+						const durationSec = Math.floor((data.duration_ms % 60000) / 1000)
+							.toString()
+							.padStart(2, "0");
 
-                            const durationMin = Math.floor(data.duration_ms / 60000);
-                            const durationSec = Math.floor((data.duration_ms % 60000) / 1000).toString().padStart(2, "0");
+						return {
+							name: data.name,
+							artist: Array.isArray(data.artists)
+								? data.artists.map((a: any) => a.name).join(", ")
+								: "",
+							duration: `${durationMin}:${durationSec}`,
+							link: link,
+							isExplicit: data.explicit,
+							isChecked: false
+						} as Song;
 
-                            return {
-                                name: data.name,
-                                artist: Array.isArray(data.artists) ? data.artists.map((a: any) => a.name).join(", ") : "",
-                                duration: `${durationMin}:${durationSec}`,
-                                link: link,
-                                isExplicit: data.explicit,
-                                isChecked: false
-                            } as Song;
-                        })
-                    );
+					} catch (err) {
+						console.warn("Failed to fetch Spotify data for:", trackId);
+						return null;
+					}
+				})
+			);
 
-                    // Filter out any null results
-                    setSongs(songsData.filter((song) => song !== null) as Song[]);
-                }
-            } catch (error) {
-                console.log("Error fetching data:", error);
-            } finally {
-                setLoading(false);
-            }
+			setSongs(songsData.filter((song) => song !== null) as Song[]);
+		}
+	} catch (error) {
+		console.error("Error fetching mood data:", error);
+	} finally {
+		setLoading(false);
+	}
+};
+
         };
 
 
